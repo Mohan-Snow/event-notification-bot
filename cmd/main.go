@@ -6,38 +6,43 @@ import (
 	"fmt"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	_ "github.com/lib/pq"
+	"go.uber.org/zap"
 	"log"
 )
 
 func main() {
+	logger, err := zap.NewDevelopment()
+	if err != nil {
+		log.Fatalf("Can't initialize zap logger: %v", err)
+	}
+	defer logger.Sync()
+
 	// Set up application configs
-	appConfig, err := config.NewConfig()
+	appConfig, err := config.NewConfig(logger)
 
 	// establish data source connection
 	psqlInfo := fmt.Sprintf("host=%s port=%s user=%s "+
 		"password=%s dbname=%s sslmode=disable",
 		appConfig.DbHost, appConfig.DbPort, appConfig.DbUsername, appConfig.DbPassword, appConfig.DbName)
-	db, err := sql.Open("postgres", psqlInfo)
+	db, err := sql.Open("postgres", psqlInfo) // to config
 	if err != nil {
-		log.Println("Database initializing error")
-		log.Fatal(err)
+		logger.Panic("Database initializing error", zap.Error(err))
 	} else {
-		log.Println("Established connection to database postgres")
+		logger.Info("Established connection to database postgres")
 	}
 	defer db.Close()
 	err = db.Ping()
 	if err != nil {
-		log.Println("Database ping error")
-		log.Fatal(err)
+		logger.Error("Database ping error", zap.Error(err))
 	}
 
 	// Establish telegram api connection
 	bot, err := tgbotapi.NewBotAPI(appConfig.TelegramToken)
 	if err != nil {
-		log.Panic(err)
+		logger.Panic("Establishing connection to telegram failed", zap.Error(err))
 	}
-	bot.Debug = true
-	log.Printf("Authorized on account %s", bot.Self.UserName)
+	bot.Debug = true // to config
+	logger.Info("Authorized on telegram account", zap.String("Bot Name", bot.Self.UserName))
 
 	u := tgbotapi.NewUpdate(0)
 	u.Timeout = 60
@@ -46,7 +51,8 @@ func main() {
 
 	for update := range updates {
 		if update.Message != nil { // If we got a message
-			log.Printf("[%s] %s", update.Message.From.UserName, update.Message.Text)
+			logger.Info("Incoming message", zap.String("User", update.Message.From.UserName),
+				zap.String("Message", update.Message.Text))
 
 			msg := tgbotapi.NewMessage(update.Message.Chat.ID, update.Message.Text)
 			msg.ReplyToMessageID = update.Message.MessageID

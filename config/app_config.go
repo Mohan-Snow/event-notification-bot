@@ -3,7 +3,7 @@ package config
 import (
 	"github.com/joho/godotenv"
 	"github.com/kelseyhightower/envconfig"
-	"log"
+	"go.uber.org/zap"
 )
 
 type AppConfig struct {
@@ -16,17 +16,21 @@ type AppConfig struct {
 }
 
 // NewConfig Loads environmental variables from .env file and populates AppConfig struct with found values
-func NewConfig() (*AppConfig, error) {
-	if err := godotenv.Load("config/.env"); err != nil {
-		log.Print("No .env file found")
+func NewConfig(logger *zap.Logger) (*AppConfig, error) {
+	envPath := "config/.env"
+	if err := godotenv.Load(envPath); err != nil {
+		logger.Error("No .env file found for path", zap.String("path", envPath), zap.Error(err))
 	}
 	cfg := AppConfig{}
 	// Process method tries to search environmental variable first by prefix+envconfig
 	// if value isn't found it uses specified envconfig
 	if err := envconfig.Process("", &cfg); err != nil {
-		log.Printf("%+v\n", err)
+		logger.Error("Error occurred while processing configs", zap.Error(err))
 		return nil, err
 	}
-	log.Printf("%+v\n", cfg)
+	logger.Info("Application configured", zap.String("Database port", cfg.DbPort),
+		zap.String("Database host", cfg.DbHost), zap.String("Database name", cfg.DbName),
+		zap.String("Database username", cfg.DbUsername), zap.String("Database password", cfg.DbPassword),
+		zap.String("Telegram token", cfg.TelegramToken))
 	return &cfg, nil
 }
