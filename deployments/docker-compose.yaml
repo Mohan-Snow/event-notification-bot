@@ -1,0 +1,22 @@
+services:
+  bot:
+    build:
+      context: ../
+      dockerfile: "build/package/backend"
+
+    environment:
+      DATA_SOURCE: ${DATA_SOURCE:-postgres}
+      DATA_SOURCE_PORT: ${DATA_SOURCE_PORT:-5432}
+      DATA_SOURCE_HOST: ${DATA_SOURCE_HOST:-127.0.0.1}
+      DATA_SOURCE_NAME: ${DATA_SOURCE_NAME:-postgres}
+      DATA_SOURCE_USERNAME: ${DATA_SOURCE_USERNAME:-postgres}
+      DATA_SOURCE_PASSWORD: ${DATA_SOURCE_PASSWORD:-postgres}
+
+      TELEGRAM_TOKEN: ${TELEGRAM_TOKEN}
+      TELEGRAM_BOT_DEBUG: ${TELEGRAM_BOT_DEBUG:-true}
+      TELEGRAM_UPDATE_TIMEOUT: ${TELEGRAM_UPDATE_TIMEOUT:-10}
+
+    ports:
+      - "443:443"
+      - "80:8080"
+

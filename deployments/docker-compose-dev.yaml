@@ -1,0 +1,11 @@
+services:
+  bot:
+    build:
+      context: ../
+      dockerfile: "build/package/backend_dev"
+
+    ports:
+      - "443:443"
+      - "80:8080"
+      - "8081:8081"
+

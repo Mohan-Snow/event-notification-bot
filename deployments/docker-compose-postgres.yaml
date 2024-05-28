@@ -1,0 +1,24 @@
+services:
+  bot:
+    depends_on:
+      - database
+
+    environment:
+      DATA_SOURCE_HOST: database
+
+  database:
+    image: postgres
+
+    restart: always
+
+    environment:
+      POSTGRES_USER: ${DATA_SOURCE_USERNAME:-postgres}
+      POSTGRESS_PASSWORD: ${DATA_SOURCE_PASSWORD:-postgres}
+      POSTGRES_DB: ${DATA_SOURCE_NAME:-postgres}
+
+    volumes:
+      - "database_volume:/var/lib/postgresql/data"
+
+volumes:
+  database_volume:
+
