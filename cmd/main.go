@@ -25,7 +25,7 @@ func main() {
 	if err != nil {
 		logger.Error("Datasource configuring error", zap.Error(err))
 	}
-	telegramApiConfig, err := api.NewApiConfig(logger)
+	telegramApiConfig, err := api.NewTelegramApiConfig(logger)
 	if err != nil {
 		logger.Error("Telegram API connection configuring error", zap.Error(err))
 	}

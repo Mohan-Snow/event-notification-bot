@@ -14,8 +14,8 @@ type TelegramApiConfig struct {
 	TelegramUpdateTimeout int    `envconfig:"TELEGRAM_UPDATE_TIMEOUT" default:"60"`
 }
 
-// NewApiConfig Loads environmental variables from .env file and populates TelegramApiConfig struct with found values
-func NewApiConfig(logger *zap.Logger) (*TelegramApiConfig, error) {
+// NewTelegramApiConfig Loads environmental variables from .env file and populates TelegramApiConfig struct with found values
+func NewTelegramApiConfig(logger *zap.Logger) (*TelegramApiConfig, error) {
 	envPath := "internal/config/.env"
 	if err := godotenv.Load(envPath); err != nil {
 		logger.Error("No .env file found for path", zap.String("path", envPath), zap.Error(err))
