@@ -17,6 +17,7 @@ vars:
 
 tasks:
   deploy:
+    desc: Run applicaiton in containers via docker
     cmds:
       - task: build
       - docker compose {{.COMPOSE_FILES}} up
@@ -25,10 +26,12 @@ tasks:
       - test -f .env
 
   build:
+    desc: Build applicaiton containers via docker
     cmds:
       - docker compose {{.COMPOSE_FILES}} build
 
   check:
+    desc: Check application compose config
     cmds:
       - docker compose {{.COMPOSE_FILES}} config
 
