@@ -9,7 +9,8 @@ import (
 	_ "github.com/lib/pq"
 	"go.uber.org/zap"
 
-	"event-notification-bot/config"
+	"event-notification-bot/internal/config/api"
+	"event-notification-bot/internal/config/postgres"
 )
 
 func main() {
@@ -20,16 +21,20 @@ func main() {
 	defer logger.Sync()
 
 	// Set up application configs
-	appConfig, err := config.NewConfig(logger)
+	dbConfig, err := postgres.NewDataSourceConfig(logger)
 	if err != nil {
-		logger.Error("Application configuring error", zap.Error(err))
+		logger.Error("Datasource configuring error", zap.Error(err))
+	}
+	telegramApiConfig, err := api.NewApiConfig(logger)
+	if err != nil {
+		logger.Error("Telegram API connection configuring error", zap.Error(err))
 	}
 
 	// Establish data source connection
 	connectionString := fmt.Sprintf("host=%s port=%s user=%s "+
 		"password=%s dbname=%s sslmode=disable",
-		appConfig.DbHost, appConfig.DbPort, appConfig.DbUsername, appConfig.DbPassword, appConfig.DbName)
-	db, err := sql.Open(appConfig.DataSource, connectionString)
+		dbConfig.DbHost, dbConfig.DbPort, dbConfig.DbUsername, dbConfig.DbPassword, dbConfig.DbName)
+	db, err := sql.Open(dbConfig.DataSource, connectionString)
 	if err != nil {
 		logger.Panic("Database initializing error", zap.Error(err))
 	} else {
@@ -42,15 +47,15 @@ func main() {
 	}
 
 	// Establish telegram api connection
-	bot, err := tgbotapi.NewBotAPI(appConfig.TelegramToken)
+	bot, err := tgbotapi.NewBotAPI(telegramApiConfig.TelegramToken)
 	if err != nil {
 		logger.Panic("Establishing connection to telegram failed", zap.Error(err))
 	}
-	bot.Debug = appConfig.TelegramBotDebug
+	bot.Debug = telegramApiConfig.TelegramBotDebug
 	logger.Info("Authorized on telegram account", zap.String("Bot Name", bot.Self.UserName))
 
 	u := tgbotapi.NewUpdate(0)
-	u.Timeout = appConfig.TelegramUpdateTimeout
+	u.Timeout = telegramApiConfig.TelegramUpdateTimeout
 
 	updates := bot.GetUpdatesChan(u)
 
