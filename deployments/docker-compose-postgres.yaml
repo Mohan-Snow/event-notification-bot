@@ -13,7 +13,7 @@ services:
 
     environment:
       POSTGRES_USER: ${DATA_SOURCE_USERNAME:-postgres}
-      POSTGRESS_PASSWORD: ${DATA_SOURCE_PASSWORD:-postgres}
+      POSTGRES_PASSWORD: ${DATA_SOURCE_PASSWORD:-postgres}
       POSTGRES_DB: ${DATA_SOURCE_NAME:-postgres}
 
     volumes:
