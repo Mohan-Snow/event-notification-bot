@@ -10,8 +10,8 @@ services:
     restart: unless-stopped
 
     environment:
-      GF_SECURITY_ADMIN_USER: ${GF_SECURITY_ADMIN_USER}
-      GF_AUTH_GOOGLE_CLIENT_SECRET: ${GF_AUTH_GOOGLE_CLIENT_SECRET}
+      GRAFANA_ADMIN_LOGIN: ${GRAFANA_ADMIN_LOGIN:-admin}
+      GRAFANA_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-admin}
 
     ports:
       - "3000:3000"
