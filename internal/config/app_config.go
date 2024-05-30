@@ -3,7 +3,6 @@ package config
 import (
 	"strconv"
 
-	"github.com/joho/godotenv"
 	"github.com/kelseyhightower/envconfig"
 	"go.uber.org/zap"
 )
@@ -22,10 +21,6 @@ type AppConfig struct {
 
 // NewConfig Loads environmental variables from .env file and populates AppConfig struct with found values
 func NewConfig(logger *zap.Logger) (*AppConfig, error) {
-	envPath := "config/.env"
-	if err := godotenv.Load(envPath); err != nil {
-		logger.Error("No .env file found for path", zap.String("path", envPath), zap.Error(err))
-	}
 	cfg := AppConfig{}
 	// Process method tries to search environmental variable first by prefix+envconfig
 	// if value isn't found it uses specified envconfig
