@@ -12,7 +12,7 @@ RUN go mod tidy
 
 RUN go test -race ./...
 
-RUN CGO_ENABLED=0 GOOS=linux go build -gcflags "all=-N -l" -o /runner cmd/app/app.go
+RUN CGO_ENABLED=0 GOOS=linux go build -gcflags "all=-N -l" -o /runner cmd/main.go
 
 RUN CGO_ENABLED=0 GOOS=linux go install github.com/go-delve/delve/cmd/dlv@latest
 RUN cp $GOPATH/bin/dlv /dlv
