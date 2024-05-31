@@ -1,0 +1,24 @@
+FROM golang:1.22 AS builder
+
+WORKDIR /build
+
+ADD cmd cmd
+ADD internal internal
+
+COPY go.mod .
+COPY go.sum .
+
+RUN go mod tidy
+
+RUN go test -race ./...
+
+RUN CGO_ENABLED=0 GOOS=linux go build -o /runner cmd/main.go
+
+FROM alpine AS runner
+
+COPY --from=builder /runner /runner
+
+EXPOSE 8080
+
+CMD ["/runner"]
+

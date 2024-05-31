@@ -1,0 +1,37 @@
+version: '3'
+
+dotenv: ['.env']
+
+vars:
+  DEPLOYMENTS_DIR: './deployments'
+  DEV_DEPLOY_COMPOSE_FILE: '{{.DEPLOYMENTS_DIR}}/docker-compose-dev.yaml'
+  PROD_DEPLOY_COMPOSE_FILE: '{{.DEPLOYMENTS_DIR}}/docker-compose.yaml'
+  POSTGRES_COMPOSE_FILE: '{{.DEPLOYMENTS_DIR}}/docker-compose-postgres.yaml'
+  GRAFANA_COMPOSE_FILE: '{{.DEPLOYMENTS_DIR}}/docker-compose-grafana.yaml'
+  PRODUCTION: '{{default false .PRODUCTION}}'
+  WITH_LOCAL_DATABASE: '{{default true .WITH_LOCAL_DATABASE}}'
+  WITH_LOCAL_GRAFANA: '{{default true .WITH_LOCAL_GRAFANA}}'
+  COMPOSE_FILES:
+    sh: RES="-f {{.PROD_DEPLOY_COMPOSE_FILE}}"; [ "{{.PRODUCTION}}" = "false" ] && RES="$RES -f {{.DEV_DEPLOY_COMPOSE_FILE}}"; [ "{{.WITH_LOCAL_DATABASE}}" = "true" ] && RES="$RES -f {{.POSTGRES_COMPOSE_FILE}}"; [ "{{.WITH_LOCAL_GRAFANA}}" = "true" ] && RES="$RES -f {{.GRAFANA_COMPOSE_FILE}}"; echo $RES
+
+
+tasks:
+  deploy:
+    desc: Run applicaiton in containers via docker
+    cmds:
+      - task: build
+      - docker compose {{.COMPOSE_FILES}} up
+
+    preconditions:
+      - test -f .env
+
+  build:
+    desc: Build applicaiton containers via docker
+    cmds:
+      - docker compose {{.COMPOSE_FILES}} build
+
+  check:
+    desc: Check application compose config
+    cmds:
+      - docker compose {{.COMPOSE_FILES}} config
+

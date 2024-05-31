@@ -1,0 +1,11 @@
+# dev configs for IDE-s and more
+.idea
+.vscode
+.mise.toml
+
+# build directory
+/target
+
+# do not leak real .env file
+.env
+

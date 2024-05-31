@@ -9,7 +9,7 @@ import (
 	_ "github.com/lib/pq"
 	"go.uber.org/zap"
 
-	"event-notification-bot/config"
+	"event-notification-bot/internal/config"
 )
 
 func main() {
@@ -66,3 +66,4 @@ func main() {
 		}
 	}
 }
+

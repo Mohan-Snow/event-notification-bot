@@ -1,0 +1,26 @@
+services:
+  bot:
+    depends_on:
+      - grafana
+
+
+  grafana:
+    image: grafana/grafana-oss
+
+    restart: unless-stopped
+
+    environment:
+      GRAFANA_ADMIN_LOGIN: ${GRAFANA_ADMIN_LOGIN:-admin}
+      GRAFANA_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-admin}
+
+    ports:
+      - "3000:3000"
+
+    volumes:
+      - "grafana_volume:/var/lib/grafana"
+      - "../configs/grafana:/etc/grafana"
+
+
+volumes:
+  grafana_volume:
+
