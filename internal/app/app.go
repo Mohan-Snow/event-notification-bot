@@ -10,9 +10,9 @@ import (
 	"go.uber.org/zap"
 )
 
-type ChatService interface {
-	AddChat(ctx context.Context, id int64) error
-	DeleteChat(ctx context.Context, id int64) error
+type ChatHandler interface {
+	StartChat(ctx context.Context, chatID int64) error
+	StopChat(ctx context.Context, chatID int64) error
 }
 
 type CatSender interface {
@@ -23,17 +23,17 @@ type App struct {
 	bot         *tgbotapi.BotAPI
 	updates     tgbotapi.UpdatesChannel
 	logger      *zap.Logger
-	chatService ChatService
 	catSender   CatSender
+	chatHandler ChatHandler
 }
 
-func New(bot *tgbotapi.BotAPI, updates tgbotapi.UpdatesChannel, catSender CatSender, chatService ChatService, logger *zap.Logger) *App {
+func New(bot *tgbotapi.BotAPI, updates tgbotapi.UpdatesChannel, chatHandler ChatHandler, catSender CatSender, logger *zap.Logger) *App {
 	return &App{
 		bot:         bot,
 		updates:     updates,
 		logger:      logger,
-		chatService: chatService,
 		catSender:   catSender,
+		chatHandler: chatHandler,
 	}
 }
 
@@ -54,20 +54,44 @@ func (a *App) Run(ctx context.Context) {
 			a.logger.Info("Incoming message", zap.String("User", update.Message.From.UserName),
 				zap.String("Message", update.Message.Text))
 
-			// Добавляем chatID в список
-			err := a.chatService.AddChat(ctx, update.Message.Chat.ID)
-			if err != nil && !errors.Is(err, chat.ErrChatAlreadyExists) {
-				a.logger.Error("Can't save chat", zap.Error(err))
-
-				msg := tgbotapi.NewMessage(update.Message.Chat.ID, "Произошла ошибка")
-				msg.ReplyToMessageID = update.Message.MessageID
-
-				a.bot.Send(msg)
-				continue
+			responseMessage, err := a.handleCommands(ctx, update.Message.Text, update.Message.Chat.ID)
+			if err != nil {
+				a.logger.Error("Error while handle commands", zap.Error(err))
 			}
 
-			msg := tgbotapi.NewMessage(update.Message.Chat.ID, "Я буду отправлять фотку котов каждые 10 сек")
-			a.bot.Send(msg)
+			msg := tgbotapi.NewMessage(update.Message.Chat.ID, responseMessage)
+			if _, err := a.bot.Send(msg); err != nil {
+				a.logger.Error("Error while sending message", zap.Error(err))
+			}
 		}
+	}
+}
+
+func (a *App) handleCommands(ctx context.Context, command string, chatID int64) (string, error) {
+	defaultMessage := "Я буду отправлять фотку котов каждые 10 сек"
+	byeMessage := "Я больше не буду отправлять фотки котов. Пока"
+	errMessage := "Произошла ошибка"
+
+	switch command {
+	case "/start":
+		err := a.chatHandler.StartChat(ctx, chatID)
+		if err != nil {
+			if errors.Is(err, chat.ErrChatAlreadyExists) {
+				return defaultMessage, nil
+			}
+
+			return errMessage, err
+		}
+
+		return defaultMessage, nil
+	case "/stop":
+		err := a.chatHandler.StopChat(ctx, chatID)
+		if err != nil {
+			return errMessage, err
+		}
+
+		return byeMessage, nil
+	default:
+		return defaultMessage, nil
 	}
 }

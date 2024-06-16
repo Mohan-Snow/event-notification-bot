@@ -6,6 +6,7 @@ import (
 
 	"event-notification-bot/internal/app"
 	"event-notification-bot/internal/config"
+	"event-notification-bot/internal/handler"
 	"event-notification-bot/internal/repo/postgres"
 	"event-notification-bot/internal/service/bot"
 	"event-notification-bot/internal/service/cat"
@@ -55,6 +56,8 @@ func main() {
 	botSender := bot.NewSender(tgbot, chatService)
 	catSender := cat.NewSender(chatService, botSender, logger)
 
-	tgApp := app.New(tgbot, updates, catSender, chatService, logger)
+	chatHandler := handler.NewChatHandler(chatService)
+
+	tgApp := app.New(tgbot, updates, chatHandler, catSender, logger)
 	tgApp.Run(ctx)
 }
