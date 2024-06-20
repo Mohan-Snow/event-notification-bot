@@ -17,7 +17,8 @@ const (
 )
 
 var (
-	ErrChatNotFound = errors.New("chat not found")
+	ErrChatNotFound   = errors.New("chat not found")
+	ErrChatNotCreated = errors.New("chat not created")
 )
 
 func (p *Postgres) SaveChat(ctx context.Context, id int64) error {
@@ -32,10 +33,14 @@ func (p *Postgres) SaveChat(ctx context.Context, id int64) error {
 		return err
 	}
 
-	_, err = p.db.Exec(ctx, rowQuery, args...)
+	commandTag, err := p.db.Exec(ctx, rowQuery, args...)
 	if err != nil {
 		fmt.Println(id)
 		log.Printf("repo.postgres.SaveChat2: %v", err)
+	}
+
+	if commandTag.RowsAffected() == 0 {
+		return ErrChatNotCreated
 	}
 
 	return err
